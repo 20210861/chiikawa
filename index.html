@@ -30,6 +30,7 @@
       <div class="actor" id="actor" data-pose="idle">
         <span class="frame-label" id="frameLabel" hidden></span>
         <img class="actor-img" id="actorImg" alt="" draggable="false" hidden>
+        <div class="actor-clips" id="actorClips"></div>
         <span class="frame-flush" aria-hidden="true"></span>
         <!-- 기본 캐릭터(오리지널 '보리'). assets/character/ 에 이미지를 넣으면 자동으로 대체돼요 -->
         <svg class="actor-svg" id="actorSvg" viewBox="0 0 200 200" aria-hidden="true">
@@ -110,6 +111,7 @@
         </svg>
       </div>
 
+      <small class="clip-credit" id="clipCredit" hidden></small>
       <div class="fx" id="fx" aria-hidden="true"></div>
       <div class="flash" aria-hidden="true"></div>
       <span class="slam-word" aria-hidden="true">탕!</span>

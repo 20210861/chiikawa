@@ -283,3 +283,10 @@ textarea, .link-input, #fromInput {
 .framed .big-word { top: 4px; }
 .frame-label { transition: opacity .2s; }
 .framed[data-state="cheers"] .frame-label, .framed[data-state="burp"] .frame-label, .framed[data-state="reveal"] .frame-label { opacity: 0; }
+
+/* 영상 클립 */
+.actor-clips { position: absolute; inset: 0; pointer-events: none; }
+.framed .actor-clips { inset: 8px; }
+.actor-video { width: 100%; height: 100%; object-fit: cover; display: block; background: #f3e6cc; }
+.framed .actor-video { border-radius: 21px; }
+.clip-credit { position: absolute; left: 40px; bottom: 4px; font-size: 11px; color: var(--muted); opacity: .8; }

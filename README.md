@@ -14,7 +14,8 @@ python3 -m http.server 8000
 `#` 없이 들어가면 메시지 작성 화면, 만든 링크로 들어가면 받는 사람 화면이에요.
 
 ## 내 캐릭터로 바꾸기
-`assets/character/`에 `idle.gif`, `drinking.gif`, `finish.gif`를 넣으면 돼요. 자세한 건 [assets/character/README.md](assets/character/README.md) 참고.
+- **링크로**: `js/app.js`의 `CONFIG.clips`에 mp4 링크와 구간(start/end)을 적어요. 저장소에 파일을 넣지 않아도 돼요.
+- **파일로**: `assets/character/`에 `idle.gif`, `drinking.gif`, `finish.gif`를 넣으면 돼요. 자세한 건 [assets/character/README.md](assets/character/README.md) 참고.
 
 ## 커스터마이징
 `js/app.js` 맨 위의 `CONFIG`에서 바꿀 수 있어요.

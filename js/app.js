@@ -18,6 +18,14 @@
       drinking: 'assets/character/drinking.gif',  // 꿀꺽꿀꺽 마시는 모습
       finish: 'assets/character/finish.gif',      // 다 마시고 "프하~!" 하는 모습
     },
+    // 영상 링크(mp4)를 그대로 불러와서 원하는 구간만 반복 재생해요. 파일을 저장소에 넣지 않아도 돼요.
+    // start/end는 초 단위. 링크를 불러오지 못하면 위 images → 기본 캐릭터 순서로 대신 보여줘요.
+    clips: {
+      idle:     { src: 'https://media.tenor.com/q-fD04tuxz4AAAPo/chiikawa-kurimanju.mp4' },
+      drinking: { src: 'https://media.tenor.com/QoiltJ872hoAAAPo/chiikawa.mp4', start: 0, end: 0.7 },
+      finish:   { src: 'https://media.tenor.com/QoiltJ872hoAAAPo/chiikawa.mp4', start: 0.8, end: 2.0 },
+    },
+    clipCredit: 'GIF via Tenor',
     captions: {
       idle: '시원한 맥주가 앞에 있다…',
       drinking: ['꿀꺽… 꿀꺽…', '벌컥벌컥!!', '조금만 더…!!', '마지막 한 모금…!!'],
@@ -51,10 +59,68 @@
   $('frameLabel').textContent = CONFIG.frameLabel || '';
   $('frameLabel').hidden = !CONFIG.frameLabel;
 
+  /* ---------- 영상 클립 (링크로 불러오기) ---------- */
+  const videos = {}, clipReady = {};
+  let activeClip = null, clipRaf = 0;
+  Object.entries(CONFIG.clips || {}).forEach(([pose, clip]) => {
+    if (!clip || !clip.src) return;
+    let v = videos[clip.src];
+    if (!v) {
+      v = document.createElement('video');
+      v.muted = true; v.playsInline = true; v.preload = 'auto'; v.disablePictureInPicture = true;
+      ['muted', 'playsinline', 'webkit-playsinline'].forEach((a) => v.setAttribute(a, ''));
+      v.className = 'actor-video'; v.hidden = true; v.src = clip.src;
+      $('actorClips').append(v);
+      videos[clip.src] = v;
+    }
+    const ready = () => {
+      clipReady[pose] = clip;
+      app.classList.toggle('framed', !!CONFIG.imageFrame);
+      $('clipCredit').textContent = CONFIG.clipCredit || '';
+      $('clipCredit').hidden = !CONFIG.clipCredit;
+      setPose(currentPose, true);
+    };
+    if (v.readyState >= 2) ready(); else v.addEventListener('loadeddata', ready, { once: true });
+  });
+
+  function playClip(clip) {
+    const v = videos[clip.src];
+    Object.values(videos).forEach((x) => { if (x !== v) { x.hidden = true; x.pause(); } });
+    v.hidden = false;
+    activeClip = clip;
+    try { v.currentTime = clip.start || 0; } catch { /* noop */ }
+    const p = v.play(); if (p) p.catch(() => {});
+    if (!clipRaf) clipRaf = requestAnimationFrame(clipLoop);
+  }
+  function clipLoop() {  // 정해 둔 구간 끝에 닿으면 처음으로 되감기
+    clipRaf = 0;
+    if (!activeClip) return;
+    const v = videos[activeClip.src];
+    const start = activeClip.start || 0;
+    const end = activeClip.end || v.duration;
+    if (v.ended || (end && v.currentTime >= end - .02) || v.currentTime < start - .05) {
+      v.currentTime = start;
+      const p = v.play(); if (p) p.catch(() => {});
+    }
+    clipRaf = requestAnimationFrame(clipLoop);
+  }
+  function stopClips() {
+    activeClip = null;
+    Object.values(videos).forEach((x) => { x.hidden = true; x.pause(); });
+  }
+
   function setPose(pose, force) {
     if (pose === currentPose && !force) return;
     currentPose = pose;
     $('actor').dataset.pose = pose;
+    const clip = clipReady[pose] || clipReady.idle;
+    if (clip) {
+      $('actorImg').hidden = true;
+      $('actorSvg').style.display = 'none';
+      if (clip !== activeClip) playClip(clip);
+      return;
+    }
+    stopClips();
     const src = available[pose] || available.idle;
     const img = $('actorImg');
     if (src) {
@@ -173,6 +239,7 @@
     if (e) e.preventDefault();
     if (holding) return;
     audio();
+    if (activeClip && videos[activeClip.src].paused) videos[activeClip.src].play().catch(() => {});
     holding = true;
     $('holdButton').classList.add('pressed');
     setState('drinking'); setPose('drinking');
