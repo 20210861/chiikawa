@@ -241,3 +241,45 @@ textarea, .link-input, #fromInput {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* =========================================================
+ * 액자 모드: 배경 있는 사각 이미지(GIF)를 둥근 액자에 담아요
+ * (CONFIG.imageFrame = true 이고 이미지가 하나라도 있을 때 #app.framed)
+ * ========================================================= */
+.frame-label, .frame-flush { display: none; }
+.framed .actor {
+  left: 34px; bottom: 34px; width: 232px; height: 232px;
+  padding: 8px; border-radius: 30px;
+  background: #fffdf8; border: 4px solid var(--ink);
+  box-shadow: 0 6px 0 var(--ink), 0 18px 36px rgba(120, 70, 0, .22);
+  transform-origin: 50% 100%;
+}
+.framed .actor-img { border-radius: 21px; object-fit: cover; background: #f3e6cc; }
+.framed .frame-flush {
+  display: block; position: absolute; inset: 8px; border-radius: 21px; pointer-events: none;
+  background: radial-gradient(70% 60% at 50% 55%, rgba(255, 120, 140, .5), transparent 70%);
+  opacity: calc(var(--flush) * .55); mix-blend-mode: multiply;
+}
+.framed .frame-label {
+  display: block; position: absolute; top: -16px; left: 50%; z-index: 1;
+  padding: 3px 14px; border-radius: 99px; white-space: nowrap;
+  background: #ffd76a; border: 3px solid var(--ink); font-size: 15px;
+  transform: translateX(-50%) rotate(-3deg);
+}
+/* 액자는 크게 기울이지 않고 살짝만 움직여요 */
+.framed[data-state="drinking"] .actor { transform: rotate(-2deg) scale(1.02); }
+.framed[data-state="pause"] .actor { transform: rotate(1deg); }
+.framed .actor.gulp { animation: frameGulp .26s ease-out; }
+@keyframes frameGulp { 40% { transform: rotate(-2deg) scale(1.05, .97); } }
+.framed[data-state="cheers"] .actor, .framed[data-state="burp"] .actor, .framed[data-state="reveal"] .actor { animation: frameWobble 1.6s ease-in-out infinite; }
+@keyframes frameWobble { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg) translateY(-4px); } }
+/* 맥주잔은 액자 오른쪽 아래에서 '남은 맥주' 게이지가 돼요 */
+.framed .mug { left: 238px; bottom: 16px; width: 74px; height: 88px; z-index: 4; transform: rotate(8deg); }
+.framed[data-state="drinking"] .mug { transform: rotate(8deg) translateY(-2px); animation: mugShake .3s ease-in-out infinite alternate; }
+.framed[data-state="pause"] .mug { transform: rotate(4deg); }
+@keyframes mugShake { from { transform: rotate(6deg); } to { transform: rotate(11deg); } }
+.framed .slam-word { right: 4px; bottom: 100px; }
+.framed .burp { left: 150px; top: 170px; }
+.framed .big-word { top: 4px; }
+.frame-label { transition: opacity .2s; }
+.framed[data-state="cheers"] .frame-label, .framed[data-state="burp"] .frame-label, .framed[data-state="reveal"] .frame-label { opacity: 0; }

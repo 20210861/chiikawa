@@ -8,7 +8,9 @@
     drinkDuration: 5200,       // 끝까지 마시는 데 필요한 누르기 시간(ms)
     maxChars: 80,              // 메시지 최대 글자 수
     maxLines: 4,               // 메시지 최대 줄 수
-    showMug: true,             // 직접 넣은 GIF에 이미 맥주가 그려져 있다면 false로
+    showMug: true,             // 맥주잔 표시. 액자 모드에서는 액자 옆 '남은 맥주' 잔으로 바뀌어요
+    imageFrame: true,          // 직접 넣은 이미지가 배경 있는 사각형(GIF 등)이면 둥근 액자에 담아 보여줘요
+    frameLabel: '오늘의 한 잔', // 액자 위 라벨 (빈 문자열이면 숨김)
     // 직접 준비한 캐릭터 이미지 경로. 파일이 없으면 기본 캐릭터 '보리'(SVG)가 나와요.
     // 일부만 넣어도 돼요. 없는 장면은 idle 이미지로 대신 보여줘요.
     images: {
@@ -38,10 +40,16 @@
   Object.entries(CONFIG.images).forEach(([pose, src]) => {
     if (!src) return;
     const img = new Image();
-    img.onload = () => { available[pose] = src; setPose(currentPose, true); };
+    img.onload = () => {
+      available[pose] = src;
+      app.classList.toggle('framed', !!CONFIG.imageFrame);
+      setPose(currentPose, true);
+    };
     img.src = src;
   });
   if (!CONFIG.showMug) $('mug').hidden = true;
+  $('frameLabel').textContent = CONFIG.frameLabel || '';
+  $('frameLabel').hidden = !CONFIG.frameLabel;
 
   function setPose(pose, force) {
     if (pose === currentPose && !force) return;
@@ -147,8 +155,14 @@
     const w = document.createElement('span');
     w.className = 'gulp-word';
     w.textContent = Math.random() < .5 ? '꿀꺽' : '꿀꺽!';
-    w.style.left = `${80 + Math.random() * 90}px`;
-    w.style.top = `${70 + Math.random() * 50}px`;
+    if (app.classList.contains('framed')) {   // 액자 모드: 액자 양옆에서 뿅
+      const right = Math.random() < .5;
+      w.style.left = `${right ? 285 + Math.random() * 20 : 15 + Math.random() * 20}px`;
+      w.style.top = `${90 + Math.random() * 110}px`;
+    } else {
+      w.style.left = `${80 + Math.random() * 90}px`;
+      w.style.top = `${70 + Math.random() * 50}px`;
+    }
     w.style.setProperty('--r', `${Math.random() * 24 - 12}deg`);
     $('fx').append(w);
     setTimeout(() => w.remove(), 950);
