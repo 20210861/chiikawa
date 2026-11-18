@@ -75,13 +75,39 @@
     }
     const ready = () => {
       clipReady[pose] = clip;
+      app.classList.remove('clip-loading');
       app.classList.toggle('framed', !!CONFIG.imageFrame);
       $('clipCredit').textContent = CONFIG.clipCredit || '';
       $('clipCredit').hidden = !CONFIG.clipCredit;
       setPose(currentPose, true);
     };
-    if (v.readyState >= 2) ready(); else v.addEventListener('loadeddata', ready, { once: true });
+    // 휴대폰은 재생 전까지 영상을 안 받기도 해서, 데이터가 조금이라도 오면 준비된 걸로 봐요
+    let fired = false;
+    const once = () => { if (!fired) { fired = true; ready(); } };
+    if (v.readyState >= 2) once();
+    else ['loadeddata', 'canplay', 'playing'].forEach((t) => v.addEventListener(t, once));
   });
+
+  // 숨겨진 영상도 미리 받도록 음소거 재생을 한 번 시도해요 (iOS·카톡 인앱 브라우저 대응)
+  function kickVideos() {
+    Object.values(videos).forEach((v) => {
+      if (v.readyState >= 2) return;
+      try { v.load(); } catch { /* noop */ }
+      const p = v.play();
+      if (p) p.then(() => { if (!activeClip || videos[activeClip.src] !== v) v.pause(); }).catch(() => {});
+    });
+  }
+  const hasClips = Object.keys(videos).length > 0;
+  if (hasClips) {
+    // 불러오는 동안은 보리 대신 빈 액자에 '준비 중…'을 보여주고, 끝내 안 되면 보리로 대신해요
+    app.classList.add('framed', 'clip-loading');
+    kickVideos();
+    document.addEventListener('pointerdown', kickVideos, { once: true, capture: true });
+    setTimeout(() => {
+      app.classList.remove('clip-loading');
+      if (!Object.keys(clipReady).length && !Object.keys(available).length) app.classList.remove('framed');
+    }, 6000);
+  }
 
   function playClip(clip) {
     const v = videos[clip.src];
